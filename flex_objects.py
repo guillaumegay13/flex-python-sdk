@@ -58,20 +58,6 @@ class ObjectType:
         self.content_metadata_supported = data.get('contentMetadataSupported')
         self.metadata_supported = data.get('metadataSupported')
 
-class ObjectType:
-    def __init__(self, data):
-        self.id = data.get('id')
-        self.name = data.get('name')
-        self.href = data.get('href')
-        self.display_name = data.get('displayName')
-        self.plural_name = data.get('pluralName')
-        self.user_defined = data.get('userDefined')
-        self.attachments_supported = data.get('attachmentsSupported')
-        self.comments_supported = data.get('commentsSupported')
-        self.object_data_supported = data.get('objectDataSupported')
-        self.content_metadata_supported = data.get('contentMetadataSupported')
-        self.metadata_supported = data.get('metadataSupported')
-
 class Visibility:
     def __init__(self, data):
         self.id = data.get('id')
@@ -102,7 +88,7 @@ class Workspace:
 
 class User:
     def __init__(self, data):
-        self.id = data.get('id')
+        self.id = data.get('id') if data.get('id') else None
         self.uuid = data.get('uuid')
         self.name = data.get('name')
         self.display_name = data.get('displayName')
@@ -180,20 +166,6 @@ class Action:
         self.revision = data.get('revision')
         self.concurrent_jobs_limit = data.get('concurrentJobsLimit')
 
-class ObjectType:
-    def __init__(self, data):
-        self.id = data.get('id')
-        self.name = data.get('name')
-        self.href = data.get('href')
-        self.display_name = data.get('displayName')
-        self.plural_name = data.get('pluralName')
-        self.user_defined = data.get('userDefined')
-        self.attachments_supported = data.get('attachmentsSupported')
-        self.comments_supported = data.get('commentsSupported')
-        self.object_data_supported = data.get('objectDataSupported')
-        self.content_metadata_supported = data.get('contentMetadataSupported')
-        self.metadata_supported = data.get('metadataSupported')
-
 class Type:
     def __init__(self, data):
         self.id = data.get('id')
@@ -201,3 +173,190 @@ class Type:
         self.display_name = data.get('displayName')
         self.href = data.get('href')
         self.category = data.get('category')
+
+class AccountProperty:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.href = data.get('href')
+        self.key = data.get('key')
+        self.value = data.get('value')
+        self.account = Account(data.get('account')) if data.get('account') else None
+
+class Collection:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.uuid = data.get('uuid')
+        self.name = data.get('name')
+        self.owner_id = data.get('ownerId')
+        self.type = data.get('type')
+        self.has_children = data.get('hasChildren') if data.get('hasChildren') else False
+        self.editable_by_user = data.get('editableByUser')
+        self.account_id = data.get('accountId')
+        self.object_type = ObjectType(data.get('objectType')) if data.get('objectType') else None
+        self.created_date = data.get('createdDate') if data.get('createdDate') else None
+        self.modified_date = data.get('modifiedDate') if data.get('modifiedDate') else None
+        self.sharing = Sharing(data.get('sharing')) if data.get('sharing') else None
+        if data.get('subCollections'):
+            self.has_children = True
+            self.sub_collections = [Collection(sub_collection) for sub_collection in data.get('subCollections')]
+        else:
+            self.sub_collections = []
+        self.variant = Variant(data.get('variant')) if data.get('variant') else None
+
+class Sharing:
+    def __init__(self, data):
+        self.read_account = data.get('readAccount')
+        self.write_account = data.get('readAccount')
+        self.read_acl = [Acl(acl) for acl in data.get('readAcl')]
+        self.write_acl = [Acl(acl) for acl in data.get('writeAcl')]
+
+class Acl:
+    def __init__(self) -> None:
+        pass
+
+class Variant:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.name = data.get('name')
+        self.href = data.get('href') if data.get('hred') else None
+
+class Item:
+    def __init__(self, data = None):
+        if data:
+            self.item_key = data.get('itemKey') if data.get('itemKey') else None
+            self.id = data.get('id') if data.get('id') else None
+            self.uuid = data.get('uuid') if data.get('uuid') else None
+            self.type = data.get('type') if data.get('type') else None
+            self.created_date = data.get('createdDate')
+            self.item_name = data.get('itemName') if data.get('itemName') else None
+            self.in_timecode = data.get('in') if data.get('in') else None
+            self.out_timecode = data.get('out') if data.get('out') else None
+
+"""    
+            "itemKey": "209074703",
+            "id": 30582499,
+            "uuid": "9a9da29b-9bb4-4ae6-84c5-77bc30091a59",
+            "type": "media-asset",
+            "createdDate": "2024-02-16T02:36:29Z"
+"""
+
+class ExternalID:
+    def __init__(self, data):
+        self.key = data.get('key')
+        self.value = data.get('value')
+        self.expression = data.get('expression')
+        self.href = data.get('href')
+
+class FileInformation:
+    def __init__(self, data):
+        self.current_file_name = data.get('currentFileName') if data.get('currentFileName') else None
+        self.current_location = data.get('currentLocation')
+        self.current_hostname = data.get('currentHostname')
+        self.ingest_path = data.get('ingestPath')
+        self.mime_type = data.get('mimeType')
+        self.original_file_name = data.get('originalFileName')
+        self.resource = Resource(data.get('resource'))
+
+class Resource:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.uuid = data.get('uuid')
+        self.name = data.get('name')
+        self.display_name = data.get('displayName')
+        self.object_type = ObjectType(data.get('objectType'))
+        self.href = data.get('href')
+        self.enabled = data.get('enabled')
+        self.owner = data.get('owner')
+        self.created_by = data.get('createdBy')
+        self.account_id = data.get('accountId')
+        self.created = data.get('created')
+        self.last_modified = data.get('lastModified')
+
+class ImageContext:
+    def __init__(self, data):
+        self.type = data.get('type')
+        self.bits_per_pixel = data.get('bitsPerPixel')
+        self.color_mode = data.get('colorMode')
+        self.compression_level = data.get('compressionLevel')
+        self.compression_scheme = data.get('compressionScheme')
+        self.exif_orientation = data.get('exifOrientation')
+        self.file_size = data.get('fileSize')
+        self.height = data.get('height')
+        self.height_resolution = data.get('heightResolution')
+        self.image_format = data.get('imageFormat')
+        self.width = data.get('width')
+        self.width_resolution = data.get('widthResolution')
+
+class Asset:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.uuid = data.get('uuid')
+        self.name = data.get('name')
+        self.display_name = data.get('displayName')
+        self.size = data.get('size')
+        self.object_type = ObjectType(data.get('objectType'))
+        self.file_asset_type = data.get('fileAssetType')
+        self.variant = Variant(data.get('variant')) if data.get('variant') else None
+        self.external_ids = [ExternalID(eid) for eid in data.get('externalIds', [])]
+        self.is_group = data.get('isGroup')
+        self.is_container_asset = data.get('isContainerAsset')
+        self.href = data.get('href')
+        self.owner = data.get('owner') if data.get('owner') else None
+        if data.get('createdBy'):
+            if isinstance(data.get('createdBy'), str):
+                self.created = data.get('createdBy')
+            elif isinstance(data.get('createdBy'), dict):
+                self.created_by = User(data.get('createdBy'))
+        else:
+            self.created_by = None
+        self.asset_origin = data.get('assetOrigin')
+        self.approved = data.get('approved')
+        self.file_information = FileInformation(data.get('fileInformation')) if data.get('fileInformation') else None
+        self.parent = UserDefinedObject(data.get('parent')) if data.get('parent') else None
+        self.parentAsset = Asset(data.get('parentAsset')) if data.get('parentAsset') else None
+        self.asset_context = ImageContext(data.get('assetContext')) if data.get('assetContext') else None
+        self.deleted = data.get('deleted')
+        self.purged = data.get('purged')
+        self.restored = data.get('restored')
+        self.created = data.get('created')
+        self.published = data.get('published')
+        self.republished = data.get('republished')
+        self.unpublished = data.get('unpublished')
+        self.archived = data.get('archived')
+        self.allow_action_on_archived = data.get('allowActionOnArchived')
+        self.live = data.get('live')
+        self.locked = data.get('locked')
+        self.last_modified = data.get('lastModified')
+        self.placeholder = data.get('placeholder')
+        self.account = Account(data.get('account')) if data.get('account') else None
+        self.workspace = Workspace(data.get('workspace')) if data.get('workspace') else None
+        self.revision = data.get('revision')
+
+class UserDefinedObject:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.uuid = data.get('uuid')
+        self.name = data.get('name')
+        self.display_name = data.get('displayName')
+        self.object_type = ObjectType(data.get('objectType'))
+        self.user_defined_object_type_id = data.get('userDefinedObjectTypeId')
+        self.href = data.get('href')
+        self.owner = data.get('owner')
+        self.created_by = data.get('createdBy')
+        self.account_id = data.get('accountId')
+        self.workspace_id = data.get('workspaceId')
+        self.workspace = Workspace(data.get('workspace'))
+        self.owner_id = data.get('ownerId')
+        self.created_by_id = data.get('createdById')
+        self.enabled = data.get('enabled')
+        self.created = data.get('created')
+        self.last_modified = data.get('lastModified')
+
+# TODO
+# Asset
+# UserDefinedObject
+# Wizard
+# Task
+# Event Handler
+# Timed Action
+# Different type of actions ?

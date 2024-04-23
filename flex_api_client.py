@@ -1,11 +1,10 @@
 import requests
 import base64
 import datetime
-from objects.flex_objects import FlexInstance, FlexAsset
 from datetime import datetime, timedelta
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from flex_objects import Action
+from flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset
 
 # Increase default recursion limit (from 999 to 1500)
 # See : https://stackoverflow.com/questions/14222416/recursion-in-python-runtimeerror-maximum-recursion-depth-exceeded-while-callin
@@ -28,11 +27,10 @@ class FlexApiClient:
         }
     
     def get_actions(self, filters = None):
-        """Get actions."""
+        """Get Actions."""
+        endpoint = f"/actions"
         if filters:
-            endpoint = f"/actions;{filters}"
-        else:
-            endpoint = f"/actions"
+            endpoint += f";{filters}"
         try:
             response = requests.get(self.base_url + endpoint, headers=self.headers)
             response.raise_for_status()
@@ -42,13 +40,61 @@ class FlexApiClient:
             raise Exception(e)
     
     def get_action(self, actionId):
-        """Get action."""
+        """Get Action."""
         endpoint = f"/actions/{actionId}"
         try:
             response = requests.get(self.base_url + endpoint, headers=self.headers)
             response.raise_for_status()
             action = Action(response.json())
             return action
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_workflow_definition(self, workflowDefinitionId):
+        """Get Workflow Definition."""
+        endpoint = f"/workflowDefinitions/{workflowDefinitionId}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            workflow_definition = WorkflowDefinition(response.json())
+            return workflow_definition
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_workflow_definitions(self, filters = None):
+        """Get Workflow Definitions."""
+        endpoint = f"/workflowDefinitions"
+        if filters:
+            endpoint += f";{filters}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            workflow_definition_list = [WorkflowDefinition(action) for action in response.json().get('workflowDefinitions', [])]
+            return workflow_definition_list
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_user(self, userId):
+        """Get User."""
+        endpoint = f"/users/{userId}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            user = User(response.json())
+            return user
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_users(self, filters = None):
+        """Get Users."""
+        endpoint = f"/users"
+        if filters:
+            endpoint += f";{filters}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            user_list = [User(action) for action in response.json().get('users', [])]
+            return user_list
         except requests.RequestException as e:
             raise Exception(e)
         
@@ -68,9 +114,59 @@ class FlexApiClient:
             for param_name, param_value in additional_param.items():
                 payload[param_name] = param_value
             
-            response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
             response.raise_for_status()
             action = Action(response.json())
             return action
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_collections(self, filters = None) -> list[Collection]:
+        """Get Collections."""
+        endpoint = f"/collections"
+        if filters:
+            endpoint += f";{filters}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            collection_list = [Collection(collection) for collection in response.json().get('collections', [])]
+            return collection_list
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_collection(self, collection_uuid) -> Collection:
+        """Get Collections."""
+        endpoint = f"/collections/{collection_uuid}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            collection = Collection(response.json())
+            return collection
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_collection_items(self, collection_uuid, offset=0) -> list[Item]:
+        """Get Collections Items."""
+        limit = 100
+        endpoint = f"/collections/{collection_uuid}/items;limit={limit};offset={offset}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            item_list = [Item(item) for item in response.json()["items"]]
+            total_results = response.json()['totalResults']
+            if (total_results > limit + offset):
+                item_list.extend(self.get_collection_items(collection_uuid, offset + limit))
+
+            return item_list
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_asset(self, asset_id):
+        endpoint = f"/assets/{asset_id}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            asset = Asset(response.json())
+            return asset
         except requests.RequestException as e:
             raise Exception(e)
