@@ -255,7 +255,7 @@ class FileInformation:
         self.ingest_path = data.get('ingestPath')
         self.mime_type = data.get('mimeType')
         self.original_file_name = data.get('originalFileName')
-        self.resource = Resource(data.get('resource'))
+        self.resource = Resource(data.get('resource')) if data.get('resource') else None
 
 class Resource:
     def __init__(self, data):
@@ -313,7 +313,7 @@ class Asset:
         self.approved = data.get('approved')
         self.file_information = FileInformation(data.get('fileInformation')) if data.get('fileInformation') else None
         self.parent = UserDefinedObject(data.get('parent')) if data.get('parent') else None
-        self.parentAsset = Asset(data.get('parentAsset')) if data.get('parentAsset') else None
+        self.parent_asset = Asset(data.get('parentAsset')) if data.get('parentAsset') else None
         self.asset_context = ImageContext(data.get('assetContext')) if data.get('assetContext') else None
         self.deleted = data.get('deleted')
         self.purged = data.get('purged')

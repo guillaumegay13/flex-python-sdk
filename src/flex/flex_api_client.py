@@ -4,7 +4,7 @@ import datetime
 from datetime import datetime, timedelta
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset
+from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset
 
 # Increase default recursion limit (from 999 to 1500)
 # See : https://stackoverflow.com/questions/14222416/recursion-in-python-runtimeerror-maximum-recursion-depth-exceeded-while-callin
@@ -148,7 +148,7 @@ class FlexApiClient:
     def get_collection_items(self, collection_uuid, offset=0) -> list[Item]:
         """Get Collections Items."""
         limit = 100
-        endpoint = f"/collections/{collection_uuid}/items;limit={limit};offset={offset}"
+        endpoint = f"/collections/{collection_uuid}/items?limit={limit}&offset={offset}"
         try:
             response = requests.get(self.base_url + endpoint, headers=self.headers)
             response.raise_for_status()
@@ -161,6 +161,43 @@ class FlexApiClient:
         except requests.RequestException as e:
             raise Exception(e)
         
+    def update_collection_items(self, collection_uuid, item_list):
+        """Update Collections Items."""
+        endpoint = f"/collections/{collection_uuid}/items"
+        try:
+            items = []
+            for item in item_list:
+                item_json = {"id": item.id, "type": item.type}
+                if (item.in_timecode):
+                    item_json["in"] = item.in_timecode
+                if (item.out_timecode):
+                    item_json["out"] = item.out_timecode
+                if (item.item_name):
+                    item_json["itemName"] = item.item_name
+                items.append(item_json)
+            payload = {"items": items}
+            print(payload)
+            response = requests.put(self.base_url + endpoint, json=payload, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def delete_items_from_collection(self, collection_uuid, item_list):
+        """Delete Items from Collection."""
+        endpoint = f"/collections/{collection_uuid}/items"
+        try:
+            items_to_delete = []
+            for item in item_list:
+                items_to_delete.append(str(item.item_key))
+            payload = {"itemKeys": items_to_delete}
+            print (payload)
+            response = requests.delete(self.base_url + endpoint, json=payload, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(e)
+        
     def get_asset(self, asset_id):
         endpoint = f"/assets/{asset_id}"
         try:
@@ -168,5 +205,35 @@ class FlexApiClient:
             response.raise_for_status()
             asset = Asset(response.json())
             return asset
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_assets(self, filters, offset = 0):
+        limit = 100
+        endpoint = f"/assets;offset={offset};limit={100}"
+        if filters:
+            endpoint += f";{filters}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            response_json = response.json()
+            asset_list = [Asset(asset) for asset in response_json["assets"]]
+            total_results = response_json["totalCount"]
+            if (total_results > offset + limit):
+                asset_list.extend(self.get_assets(filters, offset + limit))
+            return asset_list
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def delete_annotations(self, asset_id, originator_context, originator_correlation_id):
+        endpoint = f"/assets/{asset_id}/annotations"
+        try:
+            payload = {
+                        'originatorContext': originator_context,
+                        'originatorCorrelationId': originator_correlation_id
+                      }
+            response = requests.delete(self.base_url + endpoint, json=payload,headers=self.headers)
+            response.raise_for_status()
+            return response.json()
         except requests.RequestException as e:
             raise Exception(e)

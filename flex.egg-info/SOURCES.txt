@@ -1,0 +1,6 @@
+setup.py
+flex.egg-info/PKG-INFO
+flex.egg-info/SOURCES.txt
+flex.egg-info/dependency_links.txt
+flex.egg-info/requires.txt
+flex.egg-info/top_level.txt

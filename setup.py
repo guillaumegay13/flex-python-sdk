@@ -1,9 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='flex_python_sdk',
+    name='flex',
     version='0.2',
-    packages=find_packages(),
+    package_dir={'': 'src'},
+    packages=find_packages(where='src'),
     install_requires=[
         'requests'
     ]

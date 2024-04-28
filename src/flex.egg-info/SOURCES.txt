@@ -1,0 +1,9 @@
+setup.py
+src/flex/__init__.py
+src/flex/flex_api_client.py
+src/flex/flex_objects.py
+src/flex.egg-info/PKG-INFO
+src/flex.egg-info/SOURCES.txt
+src/flex.egg-info/dependency_links.txt
+src/flex.egg-info/requires.txt
+src/flex.egg-info/top_level.txt
