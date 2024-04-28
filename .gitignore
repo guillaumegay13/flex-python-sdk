@@ -3,3 +3,4 @@ __pycache__
 build
 flex_python_sdk.egg-info
 flex.egg-info
+src/flex.egg.info
