@@ -1,5 +1,5 @@
-from flex_api_client import FlexApiClient
-from flex_objects import AccountProperty
+from flex.flex_api_client import FlexApiClient
+from flex.flex_objects import AccountProperty
 import requests
 
 class AccountPropertyClient(FlexApiClient):

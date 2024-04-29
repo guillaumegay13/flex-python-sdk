@@ -1,6 +1,6 @@
-from flex_api_client import FlexApiClient
+from flex.flex_api_client import FlexApiClient
 import requests
-from flex_objects import Account, Workspace
+from flex.flex_objects import Account, Workspace
 
 class AccountClient(FlexApiClient):
     def __init__(self, base_url, username, password):

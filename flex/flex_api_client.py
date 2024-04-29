@@ -4,7 +4,7 @@ import datetime
 from datetime import datetime, timedelta
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow
+from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset
 
 # Increase default recursion limit (from 999 to 1500)
 # See : https://stackoverflow.com/questions/14222416/recursion-in-python-runtimeerror-maximum-recursion-depth-exceeded-while-callin
@@ -121,16 +121,6 @@ class FlexApiClient:
         except requests.RequestException as e:
             raise Exception(e)
         
-    def create_workflow(self, payload):
-        endpoint = f"/workflows"
-        try:
-            response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
-            response.raise_for_status()
-            json_response = response.json()
-            return Workflow(response.json())
-        except requests.RequestException as e:
-            raise Exception(e)
-    
     def get_collections(self, filters = None) -> list[Collection]:
         """Get Collections."""
         endpoint = f"/collections"
@@ -185,44 +175,12 @@ class FlexApiClient:
                 if (item.item_name):
                     item_json["itemName"] = item.item_name
                 items.append(item_json)
+
+            print (f"UPDATING WITH {len(items)} ITEMS")
             payload = {"items": items}
-            print(payload)
+            print(str(payload))
+            raise Exception("volun")
             response = requests.put(self.base_url + endpoint, json=payload, headers=self.headers)
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            raise Exception(e)
-        
-    def delete_items_from_collection(self, collection_uuid, item_list):
-        """Delete Items from Collection."""
-        endpoint = f"/collections/{collection_uuid}/items"
-        try:
-            items_to_delete = []
-            for item in item_list:
-                items_to_delete.append(str(item.item_key))
-            payload = {"itemKeys": items_to_delete}
-            print (payload)
-            response = requests.delete(self.base_url + endpoint, json=payload, headers=self.headers)
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            raise Exception(e)
-        
-    def get_collection_metadata(self, collection_uuid, ):
-        """Get Collection Metadata."""
-        endpoint = f"/collections/{collection_uuid}/metadata"
-        try:
-            response = requests.get(self.base_url + endpoint, headers=self.headers)
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            raise Exception(e)
-        
-    def update_collection_metadata(self, collection_uuid, metadata, metadata_definition_entity_id):
-        """Update Collection Metadata."""
-        endpoint = f"/collections/{collection_uuid}/metadata/{metadata_definition_entity_id}"
-        try:
-            response = requests.put(self.base_url + endpoint, json=metadata, headers=self.headers)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
@@ -235,34 +193,6 @@ class FlexApiClient:
             response.raise_for_status()
             asset = Asset(response.json())
             return asset
-        except requests.RequestException as e:
-            raise Exception(e)
-
-    def get_asset_workflows(self, asset_id):
-        endpoint = f"/assets/{asset_id}/workflows"
-        try:
-            response = requests.get(self.base_url + endpoint, headers=self.headers)
-            response.raise_for_status()
-            asset = [Workflow(workflow) for workflow in response.json()["workflows"]]
-            return asset
-        except requests.RequestException as e:
-            raise Exception(e)
-        
-    def get_asset_metadata(self, asset_id):
-        endpoint = f"/assets/{asset_id}/metadata"
-        try:
-            response = requests.get(self.base_url + endpoint, headers=self.headers)
-            response.raise_for_status()
-            return response.json()["instance"]
-        except requests.RequestException as e:
-            raise Exception(e)
-        
-    def set_asset_metadata(self, asset_id, metadata):
-        endpoint = f"/assets/{asset_id}/metadata"
-        try:
-            response = requests.put(self.base_url + endpoint, headers=self.headers)
-            response.raise_for_status()
-            return response.json()
         except requests.RequestException as e:
             raise Exception(e)
         

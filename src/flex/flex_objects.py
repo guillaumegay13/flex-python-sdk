@@ -352,6 +352,20 @@ class UserDefinedObject:
         self.created = data.get('created')
         self.last_modified = data.get('lastModified')
 
+class Workflow:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.name = data.get('name')
+        self.display_name = data.get('displayName')
+        self.href = data.get('href')
+        self.status = data.get('status')
+        self.start = data.get('start')
+        self.end = data.get('end')
+        self.owner = data.get('owner')
+        self.created_by = data.get('createdBy')
+        self.account_id = data.get('accountId')
+        self.workspace_id = data.get('workspaceId')
+
 # TODO
 # Asset
 # UserDefinedObject
