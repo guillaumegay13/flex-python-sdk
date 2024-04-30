@@ -4,7 +4,7 @@ import datetime
 from datetime import datetime, timedelta
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow
+from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job
 
 # Increase default recursion limit (from 999 to 1500)
 # See : https://stackoverflow.com/questions/14222416/recursion-in-python-runtimeerror-maximum-recursion-depth-exceeded-while-callin
@@ -260,7 +260,7 @@ class FlexApiClient:
     def set_asset_metadata(self, asset_id, metadata):
         endpoint = f"/assets/{asset_id}/metadata"
         try:
-            response = requests.put(self.base_url + endpoint, headers=self.headers)
+            response = requests.put(self.base_url + endpoint, json=metadata, headers=self.headers)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
@@ -293,5 +293,25 @@ class FlexApiClient:
             response = requests.delete(self.base_url + endpoint, json=payload,headers=self.headers)
             response.raise_for_status()
             return response.json()
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_workflow_instance(self, workflow_id, include_variables = "false"):
+        endpoint = f"/workflows/{workflow_id};includeVariables={include_variables}"
+        try:
+            response = requests.get(self.base_url + endpoint,headers=self.headers)
+            response.raise_for_status()
+            workflow = Workflow(response.json())
+            return workflow
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_job(self, job_id):
+        endpoint = f"/jobs/{job_id}"
+        try:
+            response = requests.get(self.base_url + endpoint,headers=self.headers)
+            response.raise_for_status()
+            job = Job(response.json())
+            return job
         except requests.RequestException as e:
             raise Exception(e)

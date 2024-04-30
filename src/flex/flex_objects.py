@@ -365,6 +365,36 @@ class Workflow:
         self.created_by = data.get('createdBy')
         self.account_id = data.get('accountId')
         self.workspace_id = data.get('workspaceId')
+        self.variables = data.get('variables') if 'variables' in data else None
+
+class Job:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.name = data.get('name')
+        self.object_type = data.get('objectType')
+        self.deleted = data.get('deleted')
+        self.href = data.get('href')
+        self.action_type = data.get('actionType')
+        self.status = data.get('status')
+        self.progress = data.get('progress')
+        self.priority = data.get('priority')
+        self.action = data.get('action')
+        self.scheduled = data.get('scheduled')
+        self.start = data.get('start')
+        self.end = data.get('end')
+        self.retries = data.get('retries')
+        self.owner = User(data.get('owner'))
+        self.created_by = data.get('createdBy')
+        self.account_id = data.get('accountId')
+        self.workspace_id = data.get('workspaceId')
+        self.asset = Asset(data.get('asset'))
+        self.workflow = Workflow(data.get('workflow'))
+        self.created = data.get('created')
+        self.last_modified = data.get('lastModified')
+        self.account = Account(data.get('account'))
+        self.workspace = Workspace(data.get('workspace'))
+        self.auto_retries = data.get('autoRetries')
+        self.job_external_ids = data.get('jobExternalIds')
 
 # TODO
 # Asset
