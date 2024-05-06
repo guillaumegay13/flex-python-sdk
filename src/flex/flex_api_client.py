@@ -201,12 +201,11 @@ class FlexApiClient:
             for item in item_list:
                 items_to_delete.append(str(item.item_key))
             payload = {"itemKeys": items_to_delete}
-            print (payload)
             response = requests.delete(self.base_url + endpoint, json=payload, headers=self.headers)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            raise Exception(e)
+            print(e)
         
     def get_collection_metadata(self, collection_uuid, ):
         """Get Collection Metadata."""
