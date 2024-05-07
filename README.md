@@ -1,6 +1,9 @@
 Clone this repo, then install the flex-python-sdk library using : 
 
-```pip install -e {relative-path-to-the-repo}```
+```pip install -e {path-to-the-repo}```
+
+You might need to update your PYTHONPATH :
+```export PYTHONPATH="${PYTHONPATH}:{absolute-path-to-the-repo}"```
 
 Example usage : 
 
