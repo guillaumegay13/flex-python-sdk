@@ -314,3 +314,62 @@ class FlexApiClient:
             return job
         except requests.RequestException as e:
             raise Exception(e)
+
+    def cancel_job(self, job_id):
+        """Cancel a job."""
+        endpoint = f"/jobs/{job_id}/actions"
+        try:
+            job = self.get_job(job_id)
+            job_status = job.status
+
+            if job_status != "Failed":
+                print(f"Couldn't cancel the job as it is not Failed, its status is : {job_status}")
+                return job
+            else:
+                payload = {
+                        'action': 'cancel'
+                    }
+                response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
+                response.raise_for_status()
+                job = Job(response.json())
+                print(f'Job ID {job_id} has been cancelled!')
+                return job
+        except requests.RequestException as e:
+            print(f"POST request error: {e}")
+            return None
+        
+    def get_workflow(self, workflow_id):
+        """Get a workflow."""
+        endpoint = f"/workflows/{workflow_id}"
+        try:
+                
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            workflow = Workflow(response.json())
+            return workflow
+        except requests.RequestException as e:
+            raise Exception(e)
+
+    def cancel_workflow(self, workflow_id):
+        """Cancel a workflow."""
+        endpoint = f"/workflows/{workflow_id}/actions"
+        try:
+            workflow = self.get_workflow(workflow_id)
+            status = workflow.status
+
+            if status != "Failed":
+                print(f"Couldn't cancel the workflow ID {workflow_id} as it is not Failed, its status is : {status}")
+                return workflow
+            else:
+                payload = {
+                            'action': 'cancel'
+                        }
+                    
+                response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
+                response.raise_for_status()
+                workflow = Workflow(response.json())
+                print(f'Workflow ID {workflow_id} has been cancelled!')
+                return workflow
+        except requests.RequestException as e:
+            print(f"POST request error: {e}")
+            return None
