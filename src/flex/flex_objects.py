@@ -397,8 +397,6 @@ class Job:
         self.job_external_ids = data.get('jobExternalIds')
 
 # TODO
-# Asset
-# UserDefinedObject
 # Wizard
 # Task
 # Event Handler

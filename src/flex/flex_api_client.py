@@ -4,7 +4,7 @@ import datetime
 from datetime import datetime, timedelta
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job
+from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job, UserDefinedObject
 
 # Increase default recursion limit (from 999 to 1500)
 # See : https://stackoverflow.com/questions/14222416/recursion-in-python-runtimeerror-maximum-recursion-depth-exceeded-while-callin
@@ -373,3 +373,48 @@ class FlexApiClient:
         except requests.RequestException as e:
             print(f"POST request error: {e}")
             return None
+
+    def get_object(self, plural_name, object_id):
+        endpoint = f"/{plural_name}/{object_id}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            user_defined_object = UserDefinedObject(response.json())
+            return user_defined_object
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_objects(self, plural_name, filters, offset = 0):
+        limit = 100
+        endpoint = f"/assets;offset={offset};limit={100}"
+        if filters:
+            endpoint += f";{filters}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            response_json = response.json()
+            object_list = [Asset(asset) for asset in response_json["objects"]]
+            total_results = response_json["totalCount"]
+            if (total_results > offset + limit):
+                object_list.extend(self.get_objects(plural_name, filters, offset + limit))
+            return object_list
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_object_data(self, plural_name, object_id):
+        endpoint = f"/{plural_name}/{object_id}/data"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            return response.json()["instance"]
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def set_object_data(self, plural_name, object_id, metadata):
+        endpoint = f"/plural_name/{object_id}/data"
+        try:
+            response = requests.put(self.base_url + endpoint, json=metadata, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(e)
