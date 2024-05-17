@@ -263,7 +263,7 @@ class FlexApiClient:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            raise Exception(e)
+            print(e)
         
     def get_assets(self, filters, offset = 0):
         limit = 100
