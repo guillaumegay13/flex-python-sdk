@@ -4,7 +4,7 @@ import datetime
 from datetime import datetime, timedelta
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job, UserDefinedObject
+from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job, UserDefinedObject, Keyframe
 
 # Increase default recursion limit (from 999 to 1500)
 # See : https://stackoverflow.com/questions/14222416/recursion-in-python-runtimeerror-maximum-recursion-depth-exceeded-while-callin
@@ -418,3 +418,22 @@ class FlexApiClient:
             return response.json()
         except requests.RequestException as e:
             print(e)
+
+    def get_asset_keyframes(self, asset_id):
+        endpoint = f'assets/{asset_id}/keyframes'
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            keyframe_list = [Keyframe(asset) for asset in response.json()["keyframes"]]
+            return keyframe_list
+        except requests.RequestException as e:
+            raise Exception(e)
+
+    def delete_asset_keyframe(self, asset_id, keyframe_id):
+        endpoint = f'assets/{asset_id}/keyframes/{keyframe_id}'
+        try:
+            response = requests.delete(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            return
+        except requests.RequestException as e:
+            raise Exception(e)

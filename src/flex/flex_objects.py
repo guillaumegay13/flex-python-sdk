@@ -396,6 +396,21 @@ class Job:
         self.auto_retries = data.get('autoRetries')
         self.job_external_ids = data.get('jobExternalIds')
 
+class Keyframe:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.name = data.get('name')
+        self.source = data.get('source')
+        self.timecode = data.get('timecode')
+        self.approved = data.get('approved')
+        self.master = data.get('master')
+        self.href = data.get('href')
+        self.mime_type = data.get('image/jpeg')
+        self.user_id = data.get('userId')
+        self.account_uuid = data.get('accountUuid')
+        self.persisted_filename = data.get('persistedFilename')
+        self.framerate = data.get('framerate')
+        self.size = data.get('size')
 # TODO
 # Wizard
 # Task
