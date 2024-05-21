@@ -420,17 +420,17 @@ class FlexApiClient:
             print(e)
 
     def get_asset_keyframes(self, asset_id):
-        endpoint = f'assets/{asset_id}/keyframes'
+        endpoint = f'/assets/{asset_id}/keyframes'
         try:
             response = requests.get(self.base_url + endpoint, headers=self.headers)
             response.raise_for_status()
-            keyframe_list = [Keyframe(asset) for asset in response.json()["keyframes"]]
+            keyframe_list = [Keyframe(keyframe) for keyframe in response.json()["keyframes"]]
             return keyframe_list
         except requests.RequestException as e:
             raise Exception(e)
 
     def delete_asset_keyframe(self, asset_id, keyframe_id):
-        endpoint = f'assets/{asset_id}/keyframes/{keyframe_id}'
+        endpoint = f'/assets/{asset_id}/keyframes/{keyframe_id}'
         try:
             response = requests.delete(self.base_url + endpoint, headers=self.headers)
             response.raise_for_status()

@@ -405,7 +405,7 @@ class Keyframe:
         self.approved = data.get('approved')
         self.master = data.get('master')
         self.href = data.get('href')
-        self.mime_type = data.get('image/jpeg')
+        self.mime_type = data.get('mimeType')
         self.user_id = data.get('userId')
         self.account_uuid = data.get('accountUuid')
         self.persisted_filename = data.get('persistedFilename')
