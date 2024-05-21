@@ -419,12 +419,17 @@ class FlexApiClient:
         except requests.RequestException as e:
             print(e)
 
-    def get_asset_keyframes(self, asset_id):
-        endpoint = f'/assets/{asset_id}/keyframes'
+    def get_asset_keyframes(self, asset_id, offset = 0):
+        limit = 100
+        endpoint = f'/assets/{asset_id}/keyframes;offset={offset};limit={limit}'
         try:
             response = requests.get(self.base_url + endpoint, headers=self.headers)
             response.raise_for_status()
+            response_json = response.json()
             keyframe_list = [Keyframe(keyframe) for keyframe in response.json()["keyframes"]]
+            total_results = response_json["totalCount"]
+            if (total_results > offset + limit):
+                keyframe_list.extend(self.get_asset_keyframes(asset_id, offset + limit))
             return keyframe_list
         except requests.RequestException as e:
             raise Exception(e)
