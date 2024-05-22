@@ -4,7 +4,7 @@ import datetime
 from datetime import datetime, timedelta
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job, UserDefinedObject, Keyframe
+from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job, UserDefinedObject, Keyframe, JobConfiguration
 
 # Increase default recursion limit (from 999 to 1500)
 # See : https://stackoverflow.com/questions/14222416/recursion-in-python-runtimeerror-maximum-recursion-depth-exceeded-while-callin
@@ -314,6 +314,47 @@ class FlexApiClient:
             return job
         except requests.RequestException as e:
             raise Exception(e)
+        
+    def get_job_configuration(self, job_id):
+        endpoint = f"/jobs/{job_id}/configuration"
+        try:
+            response = requests.get(self.base_url + endpoint,headers=self.headers)
+            response.raise_for_status()
+            job_configuration = response.json()["instance"]
+            return job_configuration
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def set_job_configuration(self, job_id, job_configuration):
+        endpoint = f"/jobs/{job_id}/configuration"
+        try:
+            response = requests.put(self.base_url + endpoint, json=job_configuration, headers=self.headers)
+            response.raise_for_status()
+            return response
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def retry_job(self, jobId):
+        """Retry a job."""
+        endpoint = f"/jobs/{jobId}/actions"
+        try:
+            jobStatus = self.get_job(jobId).status
+
+            if jobStatus != "Failed":
+                raise Exception(f"Couldn't retry the job as it is not Failed, its status is : {jobStatus}")
+
+            payload = {
+                        'action': 'retry'
+                    }
+            
+            print(f"Retrying job ID {jobId}")
+            response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
+            response.raise_for_status()
+
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Couldn't retry job ID {jobId} :", e)
+            pass
 
     def cancel_job(self, job_id):
         """Cancel a job."""

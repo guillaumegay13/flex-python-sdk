@@ -81,9 +81,9 @@ class Workspace:
     def __init__(self, data):
         self.id = data.get('id')
         self.name = data.get('name')
-        self.display_name = data.get('displayName')
-        self.account_id = data.get('accountId')
-        self.href = data.get('href')
+        self.display_name = data.get('displayName') if data.get('displayName') else None
+        self.account_id = data.get('accountId') if data.get('accountId') else None
+        self.href = data.get('href') if data.get('href') else None
         self.uuid = data.get('uuid')
 
 class User:
@@ -395,6 +395,13 @@ class Job:
         self.workspace = Workspace(data.get('workspace'))
         self.auto_retries = data.get('autoRetries')
         self.job_external_ids = data.get('jobExternalIds')
+
+class JobConfiguration:
+    def __init__(self, data):
+        self.workspace = Workspace(data.get('workspace'))
+        self.change_workflow_workspace = data.get('change-workflow-workspace')
+        self.traverse_member = data.get('traverse-member')
+        self.traverse_udo_children = data.get('traverse_udo_children')
 
 class Keyframe:
     def __init__(self, data):
