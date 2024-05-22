@@ -387,7 +387,7 @@ class Job:
         self.created_by = data.get('createdBy')
         self.account_id = data.get('accountId')
         self.workspace_id = data.get('workspaceId')
-        self.asset = Asset(data.get('asset'))
+        self.asset = Asset(data.get('asset')) if data.get('asset') else None
         self.workflow = Workflow(data.get('workflow'))
         self.created = data.get('created')
         self.last_modified = data.get('lastModified')
