@@ -391,6 +391,17 @@ class FlexApiClient:
         except requests.RequestException as e:
             raise Exception(e)
 
+    def get_workflow_variables(self, workflow_id):
+        """Get workflow variables."""
+        endpoint = f"/workflows/{workflow_id}/variables"
+        try:
+                
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(e)
+
     def cancel_workflow(self, workflow_id):
         """Cancel a workflow."""
         endpoint = f"/workflows/{workflow_id}/actions"
