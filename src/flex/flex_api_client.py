@@ -372,7 +372,6 @@ class FlexApiClient:
                     }
                 response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
                 response.raise_for_status()
-                job = Job(response.json())
                 print(f'Job ID {job_id} has been cancelled!')
                 return job
         except requests.RequestException as e:
@@ -492,5 +491,17 @@ class FlexApiClient:
             response = requests.delete(self.base_url + endpoint, headers=self.headers)
             response.raise_for_status()
             return
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def create_asset(self, payload):
+        """Create a new action."""
+        # Mandatory fields : name, type, pluginClass, visibilityIds
+        endpoint = "/assets"
+        try:
+            response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
+            response.raise_for_status()
+            asset = Asset(response.json())
+            return asset
         except requests.RequestException as e:
             raise Exception(e)
