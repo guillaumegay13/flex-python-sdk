@@ -495,8 +495,7 @@ class FlexApiClient:
             raise Exception(e)
         
     def create_asset(self, payload):
-        """Create a new action."""
-        # Mandatory fields : name, type, pluginClass, visibilityIds
+        """Create a new asset."""
         endpoint = "/assets"
         try:
             response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
