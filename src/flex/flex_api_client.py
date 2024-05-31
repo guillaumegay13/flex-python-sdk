@@ -504,3 +504,14 @@ class FlexApiClient:
             return asset
         except requests.RequestException as e:
             raise Exception(e)
+        
+    def create_job(self, payload):
+        """Create a new job."""
+        endpoint = "/jobs"
+        try:
+            response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
+            response.raise_for_status()
+            job = Job(response.json())
+            return job
+        except requests.RequestException as e:
+            raise Exception(e)
