@@ -331,6 +331,7 @@ class Asset:
         self.account = Account(data.get('account')) if data.get('account') else None
         self.workspace = Workspace(data.get('workspace')) if data.get('workspace') else None
         self.revision = data.get('revision')
+        self.reference_name = data.get('referenceName') if data.get('referenceName') else None
 
 class UserDefinedObject:
     def __init__(self, data):
