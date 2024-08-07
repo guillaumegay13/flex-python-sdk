@@ -353,6 +353,12 @@ class UserDefinedObject:
         self.created = data.get('created')
         self.last_modified = data.get('lastModified')
 
+class Annotation:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.uuid = data.get('uuid')
+        self.metadata = data.get('metadata').get('instance')
+
 class Workflow:
     def __init__(self, data):
         self.id = data.get('id')

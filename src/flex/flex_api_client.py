@@ -4,7 +4,7 @@ import datetime
 from datetime import datetime, timedelta
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job, UserDefinedObject, Keyframe, JobConfiguration
+from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job, UserDefinedObject, Keyframe, JobConfiguration, Annotation
 
 # Increase default recursion limit (from 999 to 1500)
 # See : https://stackoverflow.com/questions/14222416/recursion-in-python-runtimeerror-maximum-recursion-depth-exceeded-while-callin
@@ -282,6 +282,36 @@ class FlexApiClient:
         except requests.RequestException as e:
             raise Exception(e)
         
+    def get_annotations(self, asset_id, offset = 0):
+        limit = 100
+        endpoint = f"/assets/{asset_id}/annotations;offset={offset};limit={100}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            response_json = response.json()
+            annotation_list = [Annotation(asset) for asset in response_json["annotations"]]
+            total_results = response_json["totalCount"]
+            if (total_results > offset + limit):
+                annotation_list.extend(self.get_annotations(asset_id, offset + limit))
+            return annotation_list
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def set_annotation_metadata(self, asset_id, annotation_id, metadata):
+        endpoint = f"/assets/{asset_id}/annotations/{annotation_id}"
+        try:
+            payload = {
+                "metadataAnnotation": {
+                    "metadata": metadata
+                }
+            }
+            response = requests.put(self.base_url + endpoint, json=payload, headers=self.headers)
+            response.raise_for_status()
+            response_json = response.json()
+            return response_json
+        except requests.RequestException as e:
+            raise Exception(e)
+        
     def delete_annotations(self, asset_id, originator_context, originator_correlation_id):
         endpoint = f"/assets/{asset_id}/annotations"
         try:
@@ -322,6 +352,16 @@ class FlexApiClient:
             response.raise_for_status()
             job_configuration = response.json()["instance"]
             return job_configuration
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_job_history(self, job_id):
+        endpoint = f"/jobs/{job_id}/history"
+        try:
+            response = requests.get(self.base_url + endpoint,headers=self.headers)
+            response.raise_for_status()
+            job_history = response.json()
+            return job_history
         except requests.RequestException as e:
             raise Exception(e)
         
