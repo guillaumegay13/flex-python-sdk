@@ -637,12 +637,12 @@ class FlexApiClient:
         except requests.RequestException as e:
             raise Exception(e)
         
-def get_metadata_definition_fields(self, metadata_definition_id):
-    endpoint = f'/metadataDefinitions/{metadata_definition_id}/definition'
-    try:
-        response = requests.get(self.base_url + endpoint, headers=self.headers)
-        response.raise_for_status()
-        response_json = response.json()
-        return response_json
-    except requests.RequestException as e:
-        raise Exception(e)
+    def get_metadata_definition_fields(self, metadata_definition_id):
+        endpoint = f'/metadataDefinitions/{metadata_definition_id}/definition'
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            response_json = response.json()
+            return response_json
+        except requests.RequestException as e:
+            raise Exception(e)
