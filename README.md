@@ -16,6 +16,7 @@ from flex.flex_objects import Collection, Item
 base_url = os.environ['FLEX_ENV_URL'] # for exemple, https://my-env.com/api
 username = os.environ['FLEX_ENV_USERNAME']
 password = os.environ['FLEX_ENV_PASSWORD']
+```
 
 # Parse a CSV of asset IDs and launch a job on each asset
 ```
