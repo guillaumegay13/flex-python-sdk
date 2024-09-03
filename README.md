@@ -18,7 +18,7 @@ username = os.environ['FLEX_ENV_USERNAME']
 password = os.environ['FLEX_ENV_PASSWORD']
 ```
 
-# Parse a CSV of asset IDs and launch a job on each asset
+### Parse a CSV of asset IDs and launch a job on each asset
 ```
 from flex.flex_api_client import FlexApiClient
 import csv
@@ -35,7 +35,7 @@ with open('assets_to_fix.csv', 'r') as file:
         print(f'Launched job id {job.id} on asset id {asset_id}')
 ```
 
-# Delete annotations with 00:00:00:00 duration from an asset
+### Delete annotations with 00:00:00:00 duration from an asset
 
 ```
 from flex.flex_api_client import FlexApiClient
