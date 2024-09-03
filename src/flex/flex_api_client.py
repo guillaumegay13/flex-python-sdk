@@ -534,6 +534,17 @@ class FlexApiClient:
         except requests.RequestException as e:
             raise Exception(e)
         
+    def get_asset_keyframes_number(self, asset_id):
+        endpoint = f'/assets/{asset_id}/keyframes;limit=1'
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            response_json = response.json()
+            total_results = response_json["totalCount"]
+            return total_results
+        except requests.RequestException as e:
+            raise Exception(e)
+        
     def create_asset(self, payload):
         """Create a new asset."""
         endpoint = "/assets"

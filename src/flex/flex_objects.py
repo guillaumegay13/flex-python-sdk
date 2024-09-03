@@ -314,7 +314,8 @@ class Asset:
         self.file_information = FileInformation(data.get('fileInformation')) if data.get('fileInformation') else None
         self.parent = UserDefinedObject(data.get('parent')) if data.get('parent') else None
         self.parent_asset = Asset(data.get('parentAsset')) if data.get('parentAsset') else None
-        self.asset_context = ImageContext(data.get('assetContext')) if data.get('assetContext') else None
+        self.asset_context = AssetContext(data.get('assetContext')) if data.get('assetContext') else None
+        self.image_context = ImageContext(data.get('assetContext')) if data.get('assetContext') else None
         self.deleted = data.get('deleted')
         self.purged = data.get('purged')
         self.restored = data.get('restored')
@@ -357,6 +358,8 @@ class Annotation:
     def __init__(self, data):
         self.id = data.get('id')
         self.uuid = data.get('uuid')
+        self.timestamp_in = data.get('timestampIn')
+        self.timestamp_out = data.get('timestampOut')
         self.metadata = data.get('metadata').get('instance')
 
 class Workflow:
@@ -425,6 +428,66 @@ class Keyframe:
         self.persisted_filename = data.get('persistedFilename')
         self.framerate = data.get('framerate')
         self.size = data.get('size')
+
+class Tag:
+    def __init__(self, data):
+        self.name = data.get('name')
+        self.value = data.get('value')
+
+class StreamContext:
+    def __init__(self, data):
+        self.bit_rate = data.get('bitRate')
+        self.bits_per_sample = data.get('bitsPerSample')
+        self.channel_layout = data.get('channelLayout')
+        self.channels = data.get('channels')
+        self.codec = data.get('codec')
+        self.duration = data.get('duration')
+        self.format_handle = data.get('formatHandle')
+        self.language = data.get('language')
+        self.name = data.get('name')
+        self.sample_format = data.get('sampleFormat')
+        self.sample_rate = data.get('sampleRate')
+        self.start_time = data.get('startTime')
+        self.stream_number = data.get('streamNumber')
+        self.tags = [Tag(tag) for tag in data.get('tags', [])]
+        self.time_base = data.get('timeBase')
+
+class FormatContext:
+    def __init__(self, data):
+        self.audio_stream_count = data.get('audioStreamCount')
+        self.bit_rate = data.get('bitRate')
+        self.data_stream_count = data.get('dataStreamCount')
+        self.drop_frame = data.get('dropFrame')
+        self.duration = data.get('duration')
+        self.file_size = data.get('fileSize')
+        self.format = data.get('format')
+        self.preferred_drop_frame = data.get('preferredDropFrame')
+        self.preferred_start_timecode = data.get('preferredStartTimecode')
+        self.start_time = data.get('startTime')
+        self.start_timecode = data.get('startTimecode')
+        self.stream_count = data.get('streamCount')
+        self.tags = [Tag(tag) for tag in data.get('tags', [])]
+        self.text_stream_count = data.get('textStreamCount')
+        self.video_stream_count = data.get('videoStreamCount')
+
+class LabelContext:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.names = data.get('names')
+        self.values = data.get('values')
+
+class AssetContext:
+    def __init__(self, data):
+        self.type = data.get('type')
+        self.audio_stream_contexts = [StreamContext(stream) for stream in data.get('audioStreamContexts', [])]
+        self.data_stream_contexts = [StreamContext(stream) for stream in data.get('dataStreamContexts', [])]
+        self.essence_descriptors = data.get('essenceDescriptors')
+        self.format_context = FormatContext(data.get('formatContext'))
+        self.label_context = LabelContext(data.get('labelContext'))
+        self.text_stream_contexts = data.get('textStreamContexts')
+        self.version = data.get('version')
+        self.video_stream_contexts = [StreamContext(stream) for stream in data.get('videoStreamContexts', [])]
+
 # TODO
 # Wizard
 # Task
