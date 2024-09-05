@@ -5,6 +5,9 @@ from datetime import datetime, timedelta
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job, UserDefinedObject, Keyframe, JobConfiguration, Annotation
+import concurrent.futures
+from functools import partial
+import time 
 
 # Increase default recursion limit (from 999 to 1500)
 # See : https://stackoverflow.com/questions/14222416/recursion-in-python-runtimeerror-maximum-recursion-depth-exceeded-while-callin
@@ -657,3 +660,55 @@ class FlexApiClient:
             return response_json
         except requests.RequestException as e:
             raise Exception(e)
+
+    def fetch_assets_page(self, filters, offset):
+        limit = 100
+        endpoint = f"/assets;offset={offset};limit={limit}"
+        if filters:
+            endpoint += f";{filters}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(f"Error fetching assets at offset {offset}: {e}")
+
+    def get_assets_parallel(self, filters):
+        print("Fetching first page of assets...")
+        first_page = self.fetch_assets_page(filters, 0)
+        total_results = first_page["totalCount"]
+        assets = [Asset(asset) for asset in first_page["assets"]]
+        print(f"Total assets to fetch: {total_results}")
+        print(f"Fetched first 100 assets. Fetching remaining {total_results - 100} assets in parallel...")
+
+        start_time = time.time()
+        fetched_count = 100
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            offsets = range(100, total_results, 100)
+            fetch_func = partial(self.fetch_assets_page, filters)
+            future_to_offset = {executor.submit(fetch_func, offset): offset for offset in offsets}
+            
+            for future in concurrent.futures.as_completed(future_to_offset):
+                offset = future_to_offset[future]
+                try:
+                    data = future.result()
+                    new_assets = [Asset(asset) for asset in data["assets"]]
+                    assets.extend(new_assets)
+                    fetched_count += len(new_assets)
+                    
+                    # Print progress
+                    progress = fetched_count / total_results
+                    elapsed_time = time.time() - start_time
+                    estimated_total_time = elapsed_time / progress if progress > 0 else 0
+                    remaining_time = estimated_total_time - elapsed_time
+                    print(f"Fetched assets: {fetched_count}/{total_results} ({progress:.2%}) - "
+                          f"Elapsed: {elapsed_time:.2f}s - Estimated remaining: {remaining_time:.2f}s")
+                except Exception as e:
+                    print(f"Error fetching assets at offset {offset}: {e}")
+
+        total_time = time.time() - start_time
+        print(f"Finished fetching all assets in {total_time:.2f} seconds")
+        print(f"Total assets fetched: {len(assets)}")
+
+        return assets
