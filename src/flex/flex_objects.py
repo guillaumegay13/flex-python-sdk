@@ -454,9 +454,9 @@ class StreamContext:
 
 class FormatContext:
     def __init__(self, data):
-        self.audio_stream_count = data.get('audioStreamCount')
+        self.audio_stream_count = data.get('audioStreamCount') if data.get('audioStreamCount') else None
         self.bit_rate = data.get('bitRate')
-        self.data_stream_count = data.get('dataStreamCount')
+        self.data_stream_count = data.get('dataStreamCount') if data.get('dataStreamCount') else None
         self.drop_frame = data.get('dropFrame')
         self.duration = data.get('duration')
         self.file_size = data.get('fileSize')
@@ -479,14 +479,41 @@ class LabelContext:
 class AssetContext:
     def __init__(self, data):
         self.type = data.get('type')
-        self.audio_stream_contexts = [StreamContext(stream) for stream in data.get('audioStreamContexts', [])]
-        self.data_stream_contexts = [StreamContext(stream) for stream in data.get('dataStreamContexts', [])]
-        self.essence_descriptors = data.get('essenceDescriptors')
-        self.format_context = FormatContext(data.get('formatContext'))
-        self.label_context = LabelContext(data.get('labelContext'))
-        self.text_stream_contexts = data.get('textStreamContexts')
+        self.audio_stream_contexts = [StreamContext(stream) for stream in data.get('audioStreamContexts', [])] if data.get('audioStreamContexts') else None
+        self.data_stream_contexts = [StreamContext(stream) for stream in data.get('dataStreamContexts', [])] if data.get('dataStreamContexts') else None
+        self.essence_descriptors = data.get('essenceDescriptors') if data.get('essenceDescriptors') else None
+        self.format_context = FormatContext(data.get('formatContext')) if data.get('formatContext') else None
+        self.label_context = LabelContext(data.get('labelContext')) if data.get('labelContext') else None
+        self.text_stream_contexts = data.get('textStreamContexts') if data.get('textStreamContexts') else None
         self.version = data.get('version')
-        self.video_stream_contexts = [StreamContext(stream) for stream in data.get('videoStreamContexts', [])]
+        self.video_stream_contexts = [StreamContext(stream) for stream in data.get('videoStreamContexts', [])] if data.get('videoStreamContexts') else None
+
+class Taxonomy:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.name = data.get('name')
+        self.displayName = data.get('displayName')
+        self.description = data.get('description')
+        self.accountId = data.get('accountId')
+        self.visibilityIds = data.get('visibilityIds')
+        self.userId = data.get('userId')
+        self.created = data.get('created')
+        self.lastModified = data.get('lastModified')
+        self.enabled = data.get('enabled')
+        self.displayInApps = data.get('displayInApps')
+        self.uuid = data.get('uuid')
+
+class Taxon:
+    def __init__(self, data):
+        self.id = data.get('id')
+        self.name = data.get('name')
+        self.childCategoryName = data.get('childCategoryName')
+        self.hasChildren = data.get('hasChildren')
+        self.uuid = data.get('uuid')
+        self.enabled = data.get('enabled')
+        self.ancestors = data.get('ancestors')
+        self.external_id = data.get('externalId') if data.get('externalId') else None
+
 
 # TODO
 # Wizard

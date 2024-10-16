@@ -4,10 +4,12 @@ import datetime
 from datetime import datetime, timedelta
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job, UserDefinedObject, Keyframe, JobConfiguration, Annotation
+from flex.flex_objects import Action, WorkflowDefinition, User, Collection, Item, Asset, Workflow, Job, UserDefinedObject, Keyframe, JobConfiguration, Annotation, Taxonomy, Taxon
 import concurrent.futures
 from functools import partial
 import time 
+import urllib.parse
+import re
 
 # Increase default recursion limit (from 999 to 1500)
 # See : https://stackoverflow.com/questions/14222416/recursion-in-python-runtimeerror-maximum-recursion-depth-exceeded-while-callin
@@ -129,7 +131,6 @@ class FlexApiClient:
         try:
             response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
             response.raise_for_status()
-            json_response = response.json()
             return Workflow(response.json())
         except requests.RequestException as e:
             raise Exception(e)
@@ -296,6 +297,21 @@ class FlexApiClient:
             total_results = response_json["totalCount"]
             if (total_results > offset + limit):
                 annotation_list.extend(self.get_annotations(asset_id, offset + limit))
+            return annotation_list
+        except requests.RequestException as e:
+            raise Exception(e)
+
+    def get_annotations_by_filters(self, asset_id, filters, offset = 0):
+        limit = 100
+        endpoint = f"/assets/{asset_id}/annotations;{filters};offset={offset};limit={100}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            response_json = response.json()
+            annotation_list = [Annotation(asset) for asset in response_json["annotations"]]
+            total_results = response_json["totalCount"]
+            if (total_results > offset + limit):
+                annotation_list.extend(self.get_annotations_by_filters(asset_id, filters, offset + limit))
             return annotation_list
         except requests.RequestException as e:
             raise Exception(e)
@@ -528,6 +544,23 @@ class FlexApiClient:
         except requests.RequestException as e:
             raise Exception(e)
 
+    def get_asset_children(self, asset_id, filters = None, offset = 0):
+        limit = 100
+        endpoint = f'/assets/{asset_id}/children;offset={offset};limit={limit}'
+        if filters:
+            endpoint += ';' + filters
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            response_json = response.json()
+            asset_list = [Asset(child) for child in response.json()["assets"]]
+            total_results = response_json["totalCount"]
+            if (total_results > offset + limit):
+                asset_list.extend(self.get_asset_children(asset_id, filters, offset + limit))
+            return asset_list
+        except requests.RequestException as e:
+            raise Exception(e)
+
     def delete_asset_keyframe(self, asset_id, keyframe_id):
         endpoint = f'/assets/{asset_id}/keyframes/{keyframe_id}'
         try:
@@ -602,7 +635,7 @@ class FlexApiClient:
             response_assets = response_json["assets"]
             total_results = response_json["totalCount"]
 
-            print(f"Found {total_results} assets with filters {filters}, offset {offset}, createdFrom {createdFrom}, createdTo {createdTo}")
+            # print(f"Found {total_results} assets with filters {filters}, offset {offset}, createdFrom {createdFrom}, createdTo {createdTo}")
 
             asset_list = []
             for asset in response_assets:
@@ -712,3 +745,127 @@ class FlexApiClient:
         print(f"Total assets fetched: {len(assets)}")
 
         return assets
+    
+    def get_taxonomies_by_filter(self, filters):
+        endpoint = f"/taxonomies;{filters}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            taxonomy_list = [Taxonomy(taxonomy) for taxonomy in response.json()]
+            return taxonomy_list
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_taxonomy(self, taxonomy_id):
+        endpoint = f"/taxonomies/{taxonomy_id}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            taxonomy = Taxonomy(response.json())
+            return taxonomy
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def create_root_taxon(self, taxonomy_id, payload):
+        endpoint = f"/taxonomies/{taxonomy_id}/taxons"
+        try:
+            response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
+            response.raise_for_status()
+            return Taxon(response.json())
+        except requests.RequestException as e:
+            print(f'Request failed with status code {response.status_code}: {response.text}')
+            taxon = self.get_root_taxons_by_name(taxonomy_id, payload['name'])
+            if (taxon):
+                return taxon
+            # raise Exception(e)
+        
+    def create_taxon(self, taxonomy_id, parent_taxon_id, payload):
+        endpoint = f"/taxonomies/{taxonomy_id}/taxons/{parent_taxon_id}/taxons"
+        try:
+            response = requests.post(self.base_url + endpoint, json=payload, headers=self.headers)
+            response.raise_for_status()
+            return Taxon(response.json())
+        except requests.RequestException as e:
+            print(f'Request failed with status code {response.status_code}: {response.text}')
+            taxon = self.get_taxons_by_name(taxonomy_id, parent_taxon_id, payload['name'])
+            if (taxon):
+                return taxon
+
+            # raise Exception(e)
+        
+    def get_root_taxons_by_filters(self, taxonomy_id, filters):
+        pattern = r"name=([^;]*)"
+        match = re.search(pattern, filters)
+        if match:
+            name = match.group(1)
+            # URL encode the name
+            encoded_name = urllib.parse.quote(name)
+            encoded_filter = f"name={encoded_name}"
+            encoded_filters = filters.replace(f"name={name}", encoded_filter)
+        else:
+            encoded_filters = filters
+        endpoint = f"/taxonomies/{taxonomy_id}/taxons;{encoded_filters}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            taxon_list = [Taxon(taxonomy) for taxonomy in response.json()]
+            return taxon_list
+        except requests.RequestException as e:
+            print(f'Request failed with status code {response.status_code}: {response.text}')
+            # raise Exception(e)
+
+    def get_root_taxons_by_name(self, taxonomy_id, name):
+        endpoint = f"/taxonomies/{taxonomy_id}/taxons"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            taxon_list = [Taxon(taxonomy) for taxonomy in response.json()]
+            # Find the taxon where name matches taxon_name
+            matching_taxon = next((taxon for taxon in taxon_list if taxon.name == name), None)
+
+            if matching_taxon:
+                return matching_taxon
+            else:
+                print(f"No root taxon found with name: {name}")
+        except requests.RequestException as e:
+            print(f'Request failed with status code {response.status_code}: {response.text}')
+            # raise Exception(e)
+        
+    def get_taxons_by_filters(self, taxonomy_id, parent_taxon_id, filters):
+        pattern = r"name=([^;]*)"
+        match = re.search(pattern, filters)
+        if match:
+            name = match.group(1)
+            # URL encode the name
+            encoded_name = urllib.parse.quote(name)
+            encoded_filter = f"name={encoded_name}"
+            encoded_filters = filters.replace(f"name={name}", encoded_filter)
+        else:
+            encoded_filters = filters
+        endpoint = f"/taxonomies/{taxonomy_id}/taxons/{parent_taxon_id}/taxons;{encoded_filters}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            taxon_list = [Taxon(taxonomy) for taxonomy in response.json()['taxons']]
+            return taxon_list
+        except requests.RequestException as e:
+            print(f'Request failed with status code {response.status_code}: {response.text}')
+            # raise Exception(e)
+
+    def get_taxons_by_name(self, taxonomy_id, parent_taxon_id, name):
+        endpoint = f"/taxonomies/{taxonomy_id}/taxons/{parent_taxon_id}/taxons"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            taxon_list = [Taxon(taxonomy) for taxonomy in response.json()['taxons']]
+
+            # Find the taxon where name matches taxon_name
+            matching_taxon = next((taxon for taxon in taxon_list if taxon.name == name), None)
+
+            if matching_taxon:
+                return matching_taxon
+            else:
+                print(f"No taxon found with name: {name}")
+        except requests.RequestException as e:
+            print(f'Request failed with status code {response.status_code}: {response.text}')
+            # raise Exception(e)
