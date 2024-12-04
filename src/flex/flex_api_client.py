@@ -354,6 +354,25 @@ class FlexApiClient:
         except requests.RequestException as e:
             raise Exception(e)
         
+    def delete_annotation(self, annotation_id):
+        endpoint = f"/assets/annotations/{annotation_id}"
+        try:
+            response = requests.delete(self.base_url + endpoint,headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(e)
+        
+    def get_workflow_instance(self, workflow_id, include_variables = "false"):
+        endpoint = f"/workflows/{workflow_id};includeVariables={include_variables}"
+        try:
+            response = requests.get(self.base_url + endpoint,headers=self.headers)
+            response.raise_for_status()
+            workflow = Workflow(response.json())
+            return workflow
+        except requests.RequestException as e:
+            raise Exception(e)
+
     def get_job(self, job_id):
         endpoint = f"/jobs/{job_id}"
         try:
@@ -635,7 +654,7 @@ class FlexApiClient:
             response_assets = response_json["assets"]
             total_results = response_json["totalCount"]
 
-            # print(f"Found {total_results} assets with filters {filters}, offset {offset}, createdFrom {createdFrom}, createdTo {createdTo}")
+            print(f"Found {total_results} assets with filters {filters}, offset {offset}, createdFrom {createdFrom}, createdTo {createdTo}")
 
             asset_list = []
             for asset in response_assets:
@@ -869,3 +888,106 @@ class FlexApiClient:
         except requests.RequestException as e:
             print(f'Request failed with status code {response.status_code}: {response.text}')
             # raise Exception(e)
+
+    def get_objects_by_filters(self, type, filters, limit = 100, offset = 0, pagination=False, createdFrom=None, createdTo=None, pagination_delta_in_days=None, plural_name=None, pagination_delta_in_hours = 24):
+        """Get objects."""
+        """Supports the offset until 10000 results, and pagination on created dates if it is required (metadata filters)."""
+        # Set variables
+        if not pagination_delta_in_days:
+            pagination_delta_in_days = 10
+
+        if pagination_delta_in_hours != 24 and createdTo.hours < 24:
+            time_change = datetime.timedelta(hours=pagination_delta_in_hours)
+            createdFrom += time_change
+            createdTo += time_change
+
+        # End condition
+        if createdFrom and datetime.now() < datetime.strptime(createdFrom, '%d %b %Y'):
+            # if current_datetime < createdFromAsDate
+            # createdFrom date cannot be a future date : return an empy list.
+            parsed_current_date = datetime.now().strftime('%d %b %Y')
+            print(f"createdFrom is later that the current date : createdFrom={createdFrom}, current_date={parsed_current_date}")
+            # No asset can be found
+            return []
+        
+        if (plural_name):
+            if createdFrom and createdTo:
+                endpoint = f"/{plural_name};{filters};offset={offset};createdFrom={createdFrom};createdTo={createdTo}"
+            else:
+                endpoint = f"/{plural_name};{filters};offset={offset}"
+
+        else:
+            # Set up creation date filters for pagination in the endpoint
+            if createdFrom and createdTo:
+                if ('fql' in filters):
+                    # AND created > "2019-08-22" AND created < "2024-03-22"
+                    parsed_created_from = datetime.strptime(createdFrom, '%d %b %Y')
+                    fql_formatted_created_from = datetime.strftime(parsed_created_from, '%Y-%m-%d')
+                    parsed_created_to = datetime.strptime(createdTo, '%d %b %Y')
+                    fql_formatted_created_to = datetime.strftime(parsed_created_to, '%Y-%m-%d')
+                    date_filters_fql = f" AND created > \"{fql_formatted_created_from}\" AND created < \"{fql_formatted_created_to}\""
+                    encoded_date_filters_fql = urllib.parse.quote(date_filters_fql)
+                    # Add encoded date filters for fql
+                    endpoint = f"/{type};{filters}{encoded_date_filters_fql};offset={offset}"
+                else:
+                    endpoint = f"/{type};{filters};offset={offset};createdFrom={createdFrom};createdTo={createdTo}"
+            else:
+                endpoint = f"/{type};{filters};offset={offset}"
+
+        # Retrieve assets
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            response_json = response.json()
+            object_list = response_json[type]
+            total_results = response_json["totalCount"]
+
+            print(f"Found {total_results} {type} with filters {filters}, offset {offset}, createdFrom {createdFrom}, createdTo {createdTo}")
+
+            if (total_results > 10000 and "metadata" in filters):
+                # Activate pagination
+                if "created" not in filters:
+                    # if not createdTo is equivalent to if not pagination
+                    if not pagination:
+                        # Init created - 1st of Sept. 2023
+                        from_date = datetime(2023, 9, 1)
+                        createdFrom = from_date.strftime('%d %b %Y')
+                        new_createdTo = from_date + timedelta(days=pagination_delta_in_days)
+                        createdTo = new_createdTo.strftime('%d %b %Y')
+                        object_list.extend(self.get_objects_by_filters(type, filters, limit, 0, True, createdFrom, createdTo, None, plural_name))
+                    else:
+                        if pagination_delta_in_days == 1:
+                            pagination_delta_in_hours //= 2
+                            print(f"Reducing the pagination delta to {pagination_delta_in_hours} hours")
+                            parsed_createdTo = datetime.strptime(createdTo, '%d %b %Y')
+                            # Add days for the pagination
+                            new_createdTo = parsed_createdTo - timedelta(days=pagination_delta_in_days)
+                            createdTo = new_createdTo.strftime('%d %b %Y')
+                            object_list.extend(self.get_objects_by_filters(type, filters, limit, 0, True, createdFrom, createdTo, pagination_delta_in_days, plural_name, pagination_delta_in_hours))
+                        else:
+                            # if pagination and total_results > 10000, divide the pagination delta by 2
+                            pagination_delta_in_days //= 2
+                            print(f"Reducing the pagination delta to {pagination_delta_in_days} days")
+                            parsed_createdTo = datetime.strptime(createdTo, '%d %b %Y')
+                            # Add days for the pagination
+                            new_createdTo = parsed_createdTo - timedelta(days=pagination_delta_in_days)
+                            createdTo = new_createdTo.strftime('%d %b %Y')
+                            object_list.extend(self.get_objects_by_filters(type, filters, limit, 0, True, createdFrom, createdTo, pagination_delta_in_days, plural_name))
+                else:
+                    raise Exception("Unable to paginate on the creation date filters as there query already contains a creation date filter.")
+
+            elif (total_results > offset + limit):
+                # Set new offset
+                object_list.extend(self.get_objects_by_filters(type, filters, limit, offset + limit, pagination, createdFrom, createdTo, None, plural_name))
+            elif pagination:
+                # Set new pagination creation date filters
+                createdFrom = createdTo
+                parsed_date = datetime.strptime(createdTo, '%d %b %Y')
+                # Add days for the pagination
+                new_date = parsed_date + timedelta(days=pagination_delta_in_days)
+                createdTo = new_date.strftime('%d %b %Y')
+                object_list.extend(self.get_objects_by_filters(type, filters, limit, 0, True, createdFrom, createdTo, None, plural_name))
+
+            return object_list
+        except requests.RequestException as e:
+            raise Exception(e)
