@@ -382,6 +382,58 @@ class FlexApiClient:
             return job
         except requests.RequestException as e:
             raise Exception(e)
+
+    def fetch_job_page(self, filters, offset):
+        limit = 100
+        endpoint = f"/jobs;offset={offset};limit={limit}"
+        if filters:
+            endpoint += f";{filters}"
+        try:
+            response = requests.get(self.base_url + endpoint, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(f"Error fetching assets at offset {offset}: {e}")
+
+    def get_jobs(self, filters):
+        print("Fetching first page of jobs...")
+        first_page = self.fetch_job_page(filters, 0)
+        total_results = first_page["totalCount"]
+        jobs = [Job(job) for job in first_page["jobs"]]
+        print(f"Total jobs to fetch: {total_results}")
+        print(f"Fetched first 100 jobs. Fetching remaining {total_results - 100} jobs in parallel...")
+
+        start_time = time.time()
+        fetched_count = 100
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            offsets = range(100, total_results, 100)
+            fetch_func = partial(self.fetch_job_page, filters)
+            future_to_offset = {executor.submit(fetch_func, offset): offset for offset in offsets}
+            
+            for future in concurrent.futures.as_completed(future_to_offset):
+                offset = future_to_offset[future]
+                try:
+                    data = future.result()
+                    new_jobs = [Job(job) for job in data["jobs"]]
+                    jobs.extend(new_jobs)
+                    fetched_count += len(new_jobs)
+                    
+                    # Print progress
+                    progress = fetched_count / total_results
+                    elapsed_time = time.time() - start_time
+                    estimated_total_time = elapsed_time / progress if progress > 0 else 0
+                    remaining_time = estimated_total_time - elapsed_time
+                    print(f"Fetched jobs: {fetched_count}/{total_results} ({progress:.2%}) - "
+                          f"Elapsed: {elapsed_time:.2f}s - Estimated remaining: {remaining_time:.2f}s")
+                except Exception as e:
+                    print(f"Error fetching jobs at offset {offset}: {e}")
+
+        total_time = time.time() - start_time
+        print(f"Finished fetching all jobs in {total_time:.2f} seconds")
+        print(f"Total jobs fetched: {len(jobs)}")
+
+        return jobs
         
     def get_job_configuration(self, job_id):
         endpoint = f"/jobs/{job_id}/configuration"
