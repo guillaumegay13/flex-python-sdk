@@ -706,7 +706,7 @@ class FlexApiClient:
             response_assets = response_json["assets"]
             total_results = response_json["totalCount"]
 
-            print(f"Found {total_results} assets with filters {filters}, offset {offset}, createdFrom {createdFrom}, createdTo {createdTo}")
+            # print(f"Found {total_results} assets with filters {filters}, offset {offset}, createdFrom {createdFrom}, createdTo {createdTo}")
 
             asset_list = []
             for asset in response_assets:
