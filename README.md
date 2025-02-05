@@ -48,6 +48,8 @@ for annotation in annotations:
         flex_api_client.delete_annotation(annotation.id)
 ```
 
-Find more complex examples in /examples repository, such as [this script](examples/extract_assets_with_wrong_keyframes.py).
+### Deep dive
+
+Find more complex examples in the examples repository, such as [this script](examples/extract_assets_with_wrong_keyframes.py).
 
 Feel free to contribute and add your script examples. Please make sure to **always remove environment related information**.
