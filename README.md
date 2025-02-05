@@ -51,3 +51,7 @@ for annotation in annotations:
     if (annotation.timestamp_in == annotation.timestamp_out):
         flex_api_client.delete_annotation(annotation.id)
 ```
+
+Find more complex examples in /examples repository, such as [this script](examples/extract_assets_with_wrong_keyframes.py).
+
+Feel free to contribute and add your script examples. Please make sure to **always remove environment related information**.
