@@ -6,3 +6,4 @@ flex.egg-info
 src/flex.egg.info
 src/flex/__pycache__
 flex_api_client_old
+dist
