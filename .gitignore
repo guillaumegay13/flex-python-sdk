@@ -2,6 +2,7 @@ flex_api_client_old.py
 __pycache__
 build
 flex_python_sdk.egg-info
+flex.egg-info
 flex_sdk.egg-info
 src/flex.egg.info
 src/flex/__pycache__
