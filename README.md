@@ -1,10 +1,6 @@
-Clone this repo, then install the flex-python-sdk library using : 
+Run this command :
 
-```pip install -e {path-to-the-repo}```
-
-You might need to update your PYTHONPATH :
-
-```export PYTHONPATH="${PYTHONPATH}:{absolute-path-to-the-repo}"```
+```pip install flex-sdk```
 
 Example usage : 
 
@@ -51,3 +47,9 @@ for annotation in annotations:
     if (annotation.timestamp_in == annotation.timestamp_out):
         flex_api_client.delete_annotation(annotation.id)
 ```
+
+### Deep dive
+
+Find more complex examples in the examples repository, such as [this script](examples/extract_assets_with_wrong_keyframes.py).
+
+Feel free to contribute and add your script examples. Please make sure to **always remove environment related information**.
