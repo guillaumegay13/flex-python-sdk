@@ -231,8 +231,8 @@ class FlexApiClient:
         except requests.RequestException as e:
             raise Exception(e)
         
-    def get_asset(self, asset_id):
-        endpoint = f"/assets/{asset_id}"
+    def get_asset(self, asset_id, include_metadata = False):
+        endpoint = f"/assets/{asset_id};includeMetadata={include_metadata}"
         try:
             response = requests.get(self.base_url + endpoint, headers=self.headers)
             response.raise_for_status()
