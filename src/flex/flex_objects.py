@@ -452,6 +452,8 @@ class StreamContext:
         self.stream_number = data.get('streamNumber')
         self.tags = [Tag(tag) for tag in data.get('tags', [])]
         self.time_base = data.get('timeBase')
+        self.frame_rate = data.get('frameRate') if data.get('frameRate') else None
+        self.frame_rate_fraction = data.get('frameRateFraction') if data.get('frameRateFraction') else None
 
 class FormatContext:
     def __init__(self, data):
