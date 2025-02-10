@@ -333,6 +333,7 @@ class Asset:
         self.workspace = Workspace(data.get('workspace')) if data.get('workspace') else None
         self.revision = data.get('revision')
         self.reference_name = data.get('referenceName') if data.get('referenceName') else None
+        self.metadata = data.get('metadata')['instance'] if data.get('metadata') else None
 
 class UserDefinedObject:
     def __init__(self, data):
