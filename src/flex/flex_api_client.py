@@ -1001,8 +1001,12 @@ class FlexApiClient:
             response = requests.get(self.base_url + endpoint, headers=self.headers)
             response.raise_for_status()
             response_json = response.json()
-            object_list = response_json["objects"]
             total_results = response_json["totalCount"]
+
+            if total_results == 0:
+                return []
+            
+            object_list = response_json["objects"]
 
             print(f"Found {total_results} {type} with filters {filters}, offset {offset}, createdFrom {createdFrom}, createdTo {createdTo}")
 
