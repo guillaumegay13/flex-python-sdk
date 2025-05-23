@@ -241,6 +241,16 @@ class FlexApiClient:
         except requests.RequestException as e:
             raise Exception(e)
 
+    def update_asset(self, asset_id, payload):
+        endpoint = f"/assets/{asset_id}"
+        try:
+            response = requests.put(self.base_url + endpoint, json=payload, headers=self.headers)
+            response.raise_for_status()
+            asset = Asset(response.json())
+            return asset
+        except requests.RequestException as e:
+            raise Exception(e)
+        
     def get_asset_workflows(self, asset_id):
         endpoint = f"/assets/{asset_id}/workflows"
         try:
@@ -991,7 +1001,7 @@ class FlexApiClient:
             response = requests.get(self.base_url + endpoint, headers=self.headers)
             response.raise_for_status()
             response_json = response.json()
-            object_list = response_json[type]
+            object_list = response_json["objects"]
             total_results = response_json["totalCount"]
 
             print(f"Found {total_results} {type} with filters {filters}, offset {offset}, createdFrom {createdFrom}, createdTo {createdTo}")
