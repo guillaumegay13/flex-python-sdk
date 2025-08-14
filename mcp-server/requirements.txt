@@ -1,0 +1,7 @@
+# Core dependencies
+mcp>=1.0.0
+python-dotenv>=1.0.0
+requests>=2.25.0
+
+# Note: flex-sdk should be installed from the parent directory
+# pip install -e ../

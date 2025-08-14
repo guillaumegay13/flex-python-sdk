@@ -8,3 +8,6 @@ src/flex.egg.info
 src/flex/__pycache__
 flex_api_client_old
 dist
+# Don't commit .env file with credentials
+mcp-server/.env
+.env
