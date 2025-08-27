@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Repository Overview
+
+This is the **Flex Python SDK** - a pure Python client library for the Dalet Flex API. This repository contains ONLY the SDK code, without MCP server or AI agent examples (which have been moved to separate repositories).
+
 ## Common Development Commands
 
 ### Installation and Setup
@@ -92,3 +96,8 @@ The Flex Python SDK is a client library for interacting with the Dalet Flex API.
 - All timestamps are in microseconds
 - Content-Type header is set to `application/vnd.nativ.mio.v1+json`
 - The SDK is designed for Dalet Flex version that uses this API format
+
+## Related Repositories
+
+- **MCP Server & AI Agent Examples**: For MCP server and AI agent implementations, see the separate repository containing those tools
+- **Examples**: The `examples/` directory contains SDK usage examples
